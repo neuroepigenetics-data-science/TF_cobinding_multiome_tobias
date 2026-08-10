@@ -37,6 +37,14 @@ import os
 import sys
 import time
 
+# Force a headless matplotlib backend BEFORE anything imports matplotlib.
+# This env's default is "macosx", an interactive GUI backend. Run detached
+# (no controlling tty, no window server) it BLOCKS FOREVER instead of erroring:
+# observed 2026-08-10 -- scoring finished 701/701 cells, the density plot was
+# written, and the process then hung at the overview plot with 0% CPU and eight
+# idle worker threads. It looks identical to "still running".
+os.environ.setdefault("MPLBACKEND", "Agg")
+
 import anndata as ad
 import numpy as np
 import pandas as pd
