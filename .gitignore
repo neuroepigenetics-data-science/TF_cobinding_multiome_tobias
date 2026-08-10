@@ -1,0 +1,39 @@
+.DS_Store
+~$*
+.claude/settings.local.json
+
+# ---- session working notes (local only, not for the repo) ----
+20[0-9][0-9]-[0-9][0-9]-[0-9][0-9].txt
+
+# ---- derived cell metadata (55 MB; regenerate in ~2 min) ----
+# Rscript pipeline/extract_cell_metadata.R
+meta/cell_metadata.csv
+
+# ---- PEAKQC outputs (regenerate with pipeline/run_peakqc.py, ~90 min) ----
+meta/peakqc_scores.csv
+qc/
+
+# ---- pseudobulk BAMs and TOBIAS outputs (large, all derived) ----
+bam/
+tobias/
+*.bam
+*.bai
+*.bw
+*.bigwig
+
+# ---- reference genome (downloaded, not ours to version) ----
+meta/*.fa
+meta/*.fa.gz
+meta/*.fa.fai
+
+# ---- logs ----
+logs/
+
+# ---- R / python session cruft ----
+.Rhistory
+.Rapp.history
+.RData
+Rplots.pdf
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
