@@ -93,7 +93,7 @@ METADATA = "meta/cell_metadata.csv"
 SCORES = "meta/peakqc_scores.csv"
 CHROM_SIZES = os.path.join(CHROMBPNET, "meta", "mm10.chr.sizes")
 BAM_DIR = "bam"
-FLD_THRESHOLD = 100.0     # PEAKQC rule of thumb; see qc/peakqc_summary.txt
+FLD_THRESHOLD = 100.0     # PEAKQC rule of thumb; rationale in 2026-08-11.txt s.2
 
 
 def log(*a):
