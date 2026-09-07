@@ -629,3 +629,110 @@ reordered). Run them in this order:
 - **Excluded:** Perivascular, Endothelial — pooled across the injury axis and
   therefore comparable to nothing in the paper. Endothelial is retained as the
   pipeline's technical canary only.
+
+---
+
+## RESULTS AS JUDGED — TIER 3, run 2026-09-07
+
+**Recorded immediately after running, against the criterion exactly as written
+above. No threshold was adjusted after seeing these numbers, and the criterion
+text is not edited — the critique below is appended, per the amendment rule.**
+
+Run by `pipeline/run_tfcomb_tier3.py` (TF-COMB 1.1.1, `cosine`, `max_dist=100`),
+inputs built by `pipeline/prep_tfcomb_input.sh` from all 746 motifs' bound sites,
+2.3-3.5M sites per arm. Reproduced bit-identically on a second run.
+
+### TIER 3 — FAIL (1 of 4 rows; >=3 required)
+
+Median rank of AP-1 <-> partner-set pairs, out of ~277,800 unordered pairs:
+
+| | NFI+SOX9 | NFI+RFX | SOX10+TCF4 | ELK3+CEBPA |
+|---|---|---|---|---|
+| **Astrocytes** | **11,711** | 13,973 | 19,848 | 23,716 |
+| **Ependymal_I** | 27,667 | **31,900** | 45,870 | 82,109 |
+| **Oligodendrocytes** | 12,663 | 14,312 | **32,753** | 69,793 |
+| **Microglia** | 23,007 | 16,987 | 111,176 | **23,384** |
+
+(bold = the diagonal, i.e. the paper's expectation for that row)
+
+- Only **Astrocytes** puts its diagonal first. Ependymal, Oligodendrocytes and
+  Microglia are all won by an off-diagonal column.
+- **Secondary criterion: 1 of 4** beat a size-matched random null at p<0.05
+  (Ependymal p=0.0029; Astrocytes p=0.165, Oligodendrocytes p=0.572,
+  Microglia p=0.505). For Oligodendrocytes the diagonal is *worse* than random.
+- The pre-registered "non-discriminating matrix" failure mode is **not** what
+  happened — row spreads are 0.71-4.06, so rows do separate the columns. They
+  separate them the *same way*: `NFI+SOX9` is best in 3 of 4 rows. This is a
+  COLUMN effect where the tier tests for a row effect.
+
+### Three divergences from the criterion as written, all decided before running
+
+1. **AP-1 has 35 members, not 33.** The pre-registered regex
+   (`FOS|JUN|ATF3|BATF|JDP2`) matches 35 of the 746 and all 35 are genuine
+   AP-1/TRE-binding bZIPs. The definition was pre-registered; the count was a
+   miscount. All 35 used.
+2. **RFX held to RFX1/2/3/4** as written, though RFX5 and RFX7 are in the motif
+   set — widening a pre-registered set after the fact is not allowed, even
+   though including them was the option that might have helped the row.
+3. **Ependymal_I retained**, on limitation 4's own terms (single-arm occupancy,
+   within-row comparison only, no differential claim). Supervisor ruling 6
+   dropped ependymal cells but explicitly permits a single-condition TF-COMB
+   run. Dropping the row would also have removed RFX, named in limitation 3 as
+   one of the three cleanest discriminators.
+
+### POST-HOC CRITIQUE — why it failed (`pipeline/diagnose_tier3.py`)
+
+**Not evidence that the pipeline lacks cell-type-specific co-binding.** Three
+defects in the statistic are demonstrable, and specific signal survives all of
+them.
+
+**1. Pooling unequal families makes the statistic an NFI measurement.**
+`NFI+SOX9` is 140 NFI pairs against 35 SOX9 pairs. Decomposed:
+
+    Astrocytes:  NFI 11,925 | SOX9 2,436 | pooled 11,711  (pooled-NFI gap: -214)
+
+SOX9 alone sits at the **0.9th percentile** in Astrocytes — the strongest single
+family/cell-type combination in the whole table — and pooling buried it. This is
+the same class of defect that demoted Tier 1: a statistic answering to family
+size rather than biology.
+
+**2. Ranking against all pairs is confounded, because AP-1 pairs are globally
+top-ranked.** A *random* motif paired with AP-1 already lands near the 6th
+percentile in the differential rows. Raw percentiles therefore flatter every
+family, and only the permutation null is informative — which the criterion did
+include, to its credit, as the secondary test.
+
+**3. THE LARGEST EFFECT, AND A NEW FINDING: the top of the AP-1 co-occurrence
+ranking is motif redundancy, not co-binding.** Using BINDetect's own
+`<ct>_distances.txt` (0 = identical motif, ~1 = unrelated), the strongest
+"partners" in Astrocytes and Oligodendrocytes are motifs that resemble AP-1:
+
+    Smad2Smad3 0.06 | NFE2 0.24 | BACH1 0.41 | BACH2 0.49 | MAFK 0.53 | NFE2L1 0.58
+
+against ~0.997-0.999 for every genuine lineage partner (SOX9, SOX10, NFI, RFX,
+ELK3, TCF4). Median distance of the top 10 partners: **Astrocytes 0.553,
+Oligodendrocytes 0.553** — those rows are largely reporting the same DNA matched
+by two similar matrices. This is divergence 3 measured rather than assumed, and
+it is a real limitation of motif-based co-binding, not a bug.
+
+**WHAT SURVIVES, and it is not nothing.** Per-family permutation nulls
+(10,000 draws, size-matched) put three of the paper's four expected partnerships
+in the right cell type at nominal significance:
+
+    Ependymal_I  NFI    obs 16,602  null 72,902  p = 0.0011   survives Bonferroni (28 tests)
+    Microglia    CEBPA  obs    821  null ~23,000 p = 0.0093   0.3rd percentile
+    Astrocytes   SOX9   obs  2,436  null ~16,700 p = 0.0388   0.9th percentile
+
+and **Microglia is the one row whose top partners are genuinely distinct from
+AP-1** (median distance 0.940): TEF 0.87, DBP 0.81, NFIL3 0.91, CEBPG 0.98 — a
+PAR-bZIP/C/EBP signature, found without reference to any expectation. That
+independently reproduces the 2026-08-26 differential-heatmap result that the
+C/EBP block is sharply microglia-specific, from a different statistic on a
+different quantity.
+
+**Status: Tier 3 FAILS as pre-registered, and that verdict stands.** A revised
+criterion — per-family rather than pooled, scored against the AP-1 permutation
+null, and excluding partners within some motif-distance of AP-1 — is proposed,
+to be run and reported as a clearly labelled revision with this failure retained
+on record. It is NOT run here, because specifying it after seeing these numbers
+makes it a hypothesis, not a test.
