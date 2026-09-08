@@ -22,6 +22,17 @@
 #
 # Reads:  meta/peakqc_scores.csv, meta/cell_metadata.csv
 # Writes: qc/peakqc_summary.txt, qc/celltype_viability.csv
+#
+# *** WARNING -- THE FRAGMENT COLUMNS THIS SCRIPT EMITS ARE WRONG ***
+# Every "raw frags" / "effective" number below comes from PEAKQC's n_fragments,
+# which SUMS COLUMN 5 of the fragments file -- the read pairs supporting each
+# fragment, i.e. the PCR duplicates CellRanger already collapsed. It overstates
+# true depth by ~2.7x, and the multiplier varies 1.34-11.70 BY SAMPLE, so no
+# global correction fixes it. Both output files were deleted on 2026-08-13 for
+# exactly this reason; re-running this script will resurrect them.
+# The correct per-group counts are qc/celltype_viability_unique.csv and
+# qc/injury_viability_unique.csv, from pipeline/count_unique_fragments.sh.
+# The cell counts, pass rates and threshold logic here ARE valid.
 # ============================================================================
 import argparse
 import os
